@@ -1,41 +1,46 @@
-function TimeTicker(interval) {
-  this.interval = interval;
-  this.onStart = null;
-  this.onStop = null;
+(function() {
+  'use strict'
+
   var expected, timeout;
-  var that = this;
 
-  this.start = function() {
-    expected = Date.now() + this.interval;
-    timeout = setTimeout(step, this.interval);
-  }
+  window.TimeTicker = function(interval) {
+    this.interval = interval;
+    this.onStart = null;
+    this.onStop = null;
 
-  this.stop = function() {
-    clearTimeout(timeout);
-    if (this.onStop !== null) {
-      this.onStop();
+    var tick = function(ticker) {
+      var drift = Date.now() - expected;
+      var interval = ticker.interval
+      if (drift > interval) {
+        // What should we do here? Will this ever happen?
+        // return
+      }
+      expected += interval;
+
+      if (typeof ticker.onStart == 'function') {
+        ticker.onStart();
+      }
+      timeout = setTimeout(tick, Math.max(0, interval - drift), ticker);
+    }
+
+    this.start = function() {
+      expected = Date.now() + this.interval;
+      timeout = setTimeout(tick, this.interval, this);
+    }
+
+    this.stop = function() {
+      clearTimeout(timeout);
+      if (typeof this.onStop == 'function') {
+        this.onStop();
+      }
     }
   }
 
-  function step() {
-    var drift = Date.now() - expected;
-    if (drift > that.interval) {
-      // You could have some default stuff here too...
-      console.log("Timer Error!")
-    }
-    expected += that.interval;
-
-    if (that.onStart !== null) {
-      that.onStart();
-    }
-    timeout = setTimeout(step, Math.max(0, that.interval - drift));
+  TimeTicker.prototype.onStart = function(onStart) {
+    this.onStart = onStart;
   }
-}
 
-TimeTicker.prototype.onStart = function(onStart) {
-  this.onStart = onStart;
-}
-
-TimeTicker.prototype.onStop = function(onStop) {
-  this.onStop = onStop;
-}
+  TimeTicker.prototype.onStop = function(onStop) {
+    this.onStop = onStop;
+  }
+}());
