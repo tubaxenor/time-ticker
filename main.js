@@ -1,9 +1,8 @@
 (function() {
   'use strict'
 
-  var expected, timeout;
-
   window.TimeTicker = function(interval) {
+    var expected, timeout;
     this.interval = interval;
     this.onStart = null;
     this.onStop = null;
